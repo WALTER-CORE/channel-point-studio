@@ -1,0 +1,27 @@
+{
+  "name": "channel-point-studio",
+  "version": "1.0.0",
+  "description": "Twitch Channel Points Hackathon 2021",
+  "main": "index.js",
+  "scripts": {
+    "client": "yarn --cwd client run start",
+    "server": "nodemon src/index",
+    "dev": "concurrently \"yarn run server\" \"yarn run client\""
+  },
+  "repository": "git+https://github.com/WALTER-CORE/channel-point-studio.git",
+  "author": "Brian Jhong, James Jhong",
+  "license": "MIT License",
+  "bugs": {
+    "url": "https://github.com/WALTER-CORE/channel-point-studio/issues"
+  },
+  "homepage": "https://github.com/WALTER-CORE/channel-point-studio#readme",
+  "dependencies": {
+    "concurrently": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "node": "^15.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
