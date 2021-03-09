@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu-latest", "windows-latest", "macos-latest"]    
+        os: ["ubuntu-latest"]    
         node-version: [13.x, 14.x, 15.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu-latest", "windows-latest", "macos-latest"]    
+        os: ["ubuntu-latest"]   
     steps: 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@v1.5
