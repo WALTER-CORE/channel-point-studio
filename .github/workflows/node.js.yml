@@ -28,6 +28,10 @@ jobs:
     - run: npm test
     
   sonar: 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]    
     steps: 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@v1.5
