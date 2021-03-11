@@ -1,0 +1,50 @@
+version: "3.2"
+services:
+  # Server 
+  expressjs:
+    build: . 
+    image: channel-point-studio/express-server
+    networks:
+      - frontend
+      - backend
+    environment: # TODO: Add these env variables to GitHub. 
+      - MYSQL_HOST=channel-point-mysql
+      - MYSQL_USER=user
+      - MYSQL_PASS=pass
+      - MYSQL_DB=channel-point-db
+    volumes:
+      - /usr/src/express-server
+    ports:
+      - "8005:8005"
+    container_name: channel-point-express-server
+  # Database 
+  mysql:
+    image: mysql:5.7
+    networks:
+      - backend
+    environment: # TODO: Add these env variables to GitHub. 
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass 
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=channel-point-db
+    ports:
+      - "3306:3306"
+    container_name: channel-point-mysql
+  # PHP MyAdmin for looking at DB
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.7
+    depends_on:
+      - mysql
+    networks:
+      - backend
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=channel-point-mysql
+      - PMA_PORT= 3306
+    volumes:
+      - /sessions
+    container_name: channel-point-phpmyadmin
+networks:
+  frontend:
+  backend:
