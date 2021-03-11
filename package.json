@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "client": "yarn --cwd client run start",
+    "start": "node src/index", 
     "server": "nodemon src/index",
     "dev": "concurrently \"yarn run server\" \"yarn run client\"",
     "docker": "docker-compose -f docker-compose.yml up"
