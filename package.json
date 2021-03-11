@@ -8,7 +8,8 @@
     "start": "node src/index", 
     "server": "nodemon src/index",
     "dev": "concurrently \"yarn run server\" \"yarn run client\"",
-    "docker": "docker-compose -f docker-compose.yml up"
+    "docker-up": "docker-compose -f docker-compose.yml down", 
+    "docker-down": "docker-compose -f docker-compose.yml up"
   },
   "repository": "git+https://github.com/WALTER-CORE/channel-point-studio.git",
   "author": "Brian Jhong, James Jhong",
