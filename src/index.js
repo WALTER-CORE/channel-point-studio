@@ -21,18 +21,26 @@ const customRewardBody = {
 }
 
 let clientId = process.env['TWITCH_CLIENT_ID']
-let redirectUri = `http://localhost:${PORT}`
 let userId = ""
 let headers = {}
 let rewardId = ""
 let pollingInterval
+
+const REDIRECT_URI = `http://localhost:${PORT}`
+const {
+  TWITCH_CLIENT_ID,
+  TWITCH_CLIENT_SECRET,
+  SCOPES,
+} = process.env;
+
+const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
 
 // Prompts a user to authorize the application.
 const authorizeApplication = async () => {
   try {
     let response = await axios({
       url: 'https://id.twitch.tv/oauth2/authorize',
-      method: 'get', 
+      method: 'redirect', 
       timeout: 8000, 
       headers: {
         'Content-Type': 'application/json'
@@ -217,12 +225,9 @@ const main = async () => {
 }
 
 // start the script
-app.route('/login')
-    .get(async (req, res) => {
-        console.log('Incoming login request');
-        let response = await authorizeApplication(); 
-        console.log(`Response Body ${response.body}`)
-        res.send(response.body)
-      });
-    
-app.get('/', (req, res) => res.send('Channel Points Server Homepage'));
+app.route('/login').get(async (req, res) => {
+  console.log('Incoming login request, redirecting to twitch authorization');
+  res.redirect(TWITCH_AUTHORIZE_URL);
+});
+
+app.get('/', (req, res) => res.status(200).send('Channel Points Server Homepage'));
