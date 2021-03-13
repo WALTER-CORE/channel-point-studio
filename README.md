@@ -38,13 +38,13 @@ yarn dev
 Start the mysql database and phpmyadmin 
 
 ```
-docker-up 
+yarn docker-up 
 ```
 
 Stop the mysql database and phpmyadmin 
 
 ```
-docker-down 
+yarn docker-down 
 ```
 
 ## Technologies Used 
