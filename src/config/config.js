@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 // Constants 
-const PORT = 8000; 
+const PORT = process.env.PORT || 8000; 
 const REDIRECT_URI = `http://localhost:${PORT}/redirect`
 const ENVIRONMENT_VARIABLES = {
   TWITCH_CLIENT_ID,

@@ -106,15 +106,9 @@ app.get('/redirect', async (req, res) => {
     console.log(`OAuth code: ${oauthCode}`)
     let response = await generateToken(oauthCode); 
     if (response != undefined) {
-      console.log(`👍 Successfully received auth token`);
-      // Set the global variables for the tokens. 
-    // Set the global variables for the tokens. 
+      console.log(`👍 Successfully retrieved auth token`);
       // Set the global variables for the tokens. 
       ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
-    ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
-      ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
-      REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
-    REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
       REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
     }
   }
