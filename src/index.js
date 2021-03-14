@@ -4,6 +4,8 @@ const cors = require('cors');
 const app = express();
 const PORT = 8000;
 const axios = require('axios');
+const bodyParser = require('body-parser')
+
 require('dotenv').config();
 
 app.use(cors());
@@ -26,14 +28,12 @@ let headers = {}
 let rewardId = ""
 let pollingInterval
 
-const REDIRECT_URI = `http://localhost:${PORT}`
+const REDIRECT_URI = `http://localhost:${PORT}/redirect`
 const {
   TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET,
   SCOPES,
 } = process.env;
-
-const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
 
 // Prompts a user to authorize the application.
 const authorizeApplication = async () => {
@@ -176,7 +176,7 @@ const followUser = async (fromUser, toUser) => {
     console.log(`Unable to follow user ${toUser}`)
     return false
   }
-}
+  }
 
 const fulfillRewards = async (ids, status) => {
   // if empty, just cancel
@@ -224,10 +224,47 @@ const main = async () => {
   // pollForRedemptions()
 }
 
-// start the script
+/**
+ * Generates `token.json` file by asking for user approval
+ *
+ * @param {string} code OAuth code
+ */
+const generateTokenFile = async (code) => {
+  const formData = new FormData();
+  formData.append('client_id', CLIENT_ID);
+  formData.append('client_secret', CLIENT_SECRET);
+  formData.append('code', code);
+  formData.append('grant_type', 'authorization_code');
+  formData.append('redirect_uri', REDIRECT_URI);
+
+  const { body } = await axios.post('https://id.twitch.tv/oauth2/token', {
+    body: formData,
+  });
+
+  const token = JSON.parse(body);
+
+  /** @type {TokenFileData} */
+  const tokenFileData = {
+    accessToken: token.access_token,
+    refreshToken: token.refresh_token,
+    expiryTimestamp: 0,
+  };
+
+  fs.writeFileSync('./token.json', JSON.stringify(tokenFileData, null, 2));
+};
+
+const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
 app.route('/login').get(async (req, res) => {
   console.log('Incoming login request, redirecting to twitch authorization');
   res.redirect(TWITCH_AUTHORIZE_URL);
 });
 
-app.get('/', (req, res) => res.status(200).send('Channel Points Server Homepage'));
+app.get('/', (req, res) => {
+  res.status(200).send('Channel Points Server Homepage')
+});
+
+app.get('/redirect', (req, res) => {
+  let oauthCode = req.query.code; 
+  console.log(`Code after redirect url: ${oauthCode}`); 
+  res.status(200).send('Welcome to the redirect page')
+});
