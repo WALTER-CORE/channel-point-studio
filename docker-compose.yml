@@ -25,14 +25,17 @@ services:
     environment: # TODO: Add these env variables to GitHub. 
       - MYSQL_USER=user
       - MYSQL_PASSWORD=pass 
-      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=channel-point-db
     ports:
       - "3307:3306"
     container_name: channel-point-mysql
     volumes: 
-      - ./mysql:/var/lib/mysql:z
-      
+      - mysql-db:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+#Volumes
+volumes: 
+  mysql-db:
 networks:
   frontend:
   backend:
