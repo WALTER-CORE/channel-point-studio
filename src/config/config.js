@@ -1,19 +1,17 @@
-'use strict'
- 
-var mysql = require('mysql');
+require('dotenv').config();
+
+// Constants 
+const PORT = 8000; 
+const REDIRECT_URI = `http://localhost:${PORT}/redirect`
+const ENVIRONMENT_VARIABLES = {
+  TWITCH_CLIENT_ID,
+  TWITCH_CLIENT_SECRET,
+  SCOPES,
+} = process.env;
+
  
 module.exports = {
-    name: 'rest-api',
-    hostname : 'http://localhost',
-    version: '0.0.1',
-    env: process.env.NODE_ENV || 'development',
-    port: process.env.PORT || 8000,
-    db: {
-        get : mysql.createConnection({
-          host     : 'localhost',
-          user     : 'user',
-          password : 'pass',
-          database : 'channel-point-db'
-        })
-    }
+  PORT, 
+  REDIRECT_URI,
+  env: ENVIRONMENT_VARIABLES, 
 }

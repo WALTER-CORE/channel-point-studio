@@ -1,20 +1,12 @@
-// Require depedancies
 'use strict'
 const express = require('express');
 const app = express();
-const PORT = 8000;
 const axios = require('axios');
 const cors = require('cors');
-app.use(cors());
-require('dotenv').config();
+const config = require('./config/config')
 
-// Constants 
-const REDIRECT_URI = `http://localhost:${PORT}/redirect`
-const {
-  TWITCH_CLIENT_ID,
-  TWITCH_CLIENT_SECRET,
-  SCOPES,
-} = process.env;
+// enable cors
+app.use(cors());
 
 // Global fields 
 let ACCESS_TOKEN = ""; 
@@ -28,12 +20,12 @@ let headers = {};
  * 
  * @return {object} response code
  */
-const validateToken = async () => {
+const validateToken = async (token) => {
   let response; 
   try {
     response = await axios.get(`https://id.twitch.tv/oauth2/validate`, {
       headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`
+        "Authorization": `Bearer ${token}`
       }
     })
   } catch (error) {
@@ -75,29 +67,26 @@ const generateToken = async (oauthCode) => {
         'Content-Type': 'application/json'
       }, 
       params: {
-        client_id: TWITCH_CLIENT_ID, 
-        client_secret: TWITCH_CLIENT_SECRET, 
+        client_id: config.env.TWITCH_CLIENT_ID, 
+        client_secret: config.env.TWITCH_CLIENT_SECRET, 
         code: oauthCode,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI
+        redirect_uri: config.REDIRECT_URI
       }
     })
     console.log(`👍 Successfully retrieved oauth code`)
     return response; 
   } catch (error) {
-    console.log(`🔥 ${error}`)
-    error.json().then((body) => {
-      console.log(body);
-    });
+    console.log(`🔥 ${error.message}`)
     return; 
   }
 };
 
 // TODO: clean this up and add it to a method. 
-const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
+const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${config.env.TWITCH_CLIENT_ID}&redirect_uri=${config.REDIRECT_URI}&response_type=code&scope=${config.env.SCOPES}`;
 
-app.listen(PORT, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
+app.listen(config.PORT, () => {
+  console.log(`⚡️[server]: Server is running at http://localhost:${config.PORT}`);
 });
 
 app.get('/', (req, res) => {
@@ -114,11 +103,20 @@ app.get('/redirect', async (req, res) => {
   let oauthCode = req.query.code; 
   if (oauthCode != undefined) {
     // We have a valid oauthCode after the user logs in. So fetch the open token. 
+    console.log(`OAuth code: ${oauthCode}`)
     let response = await generateToken(oauthCode); 
-    console.log(`👍 Successfully received auth token`);
+    if (response != undefined) {
+      console.log(`👍 Successfully received auth token`);
+      // Set the global variables for the tokens. 
     // Set the global variables for the tokens. 
+      // Set the global variables for the tokens. 
+      ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
     ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
+      ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
+      REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
     REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
+      REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
+    }
   }
   // This endpoint handles getting the token and then we redirect again to the homepage. 
   res.redirect('/'); 
