@@ -28,10 +28,10 @@ let headers = {}
 let rewardId = ""
 let pollingInterval
 
-const REDIRECT_URI = `http://localhost:${PORT}/redirect`
+const REDIRECT_URI = `http://localhost:${PORT}`
 const {
   TWITCH_CLIENT_ID,
-  TWITCH_CLIENT_SECRET,
+  TWITCH_ACCESS_TOKEN,
   SCOPES,
 } = process.env;
 
@@ -225,41 +225,57 @@ const main = async () => {
 }
 
 /**
- * Generates `token.json` file by asking for user approval
+ * Generates token
  *
- * @param {string} code OAuth code
+ * @param {string} oauthCode OAuth code
  */
-const generateTokenFile = async (code) => {
-  const formData = new FormData();
-  formData.append('client_id', CLIENT_ID);
-  formData.append('client_secret', CLIENT_SECRET);
-  formData.append('code', code);
-  formData.append('grant_type', 'authorization_code');
-  formData.append('redirect_uri', REDIRECT_URI);
-
-  const { body } = await axios.post('https://id.twitch.tv/oauth2/token', {
-    body: formData,
-  });
-
-  const token = JSON.parse(body);
-
-  /** @type {TokenFileData} */
-  const tokenFileData = {
-    accessToken: token.access_token,
-    refreshToken: token.refresh_token,
-    expiryTimestamp: 0,
-  };
-
-  fs.writeFileSync('./token.json', JSON.stringify(tokenFileData, null, 2));
+const generateToken = async (oauthCode) => {
+  try {
+    let params = {
+      client_id: TWITCH_CLIENT_ID, 
+      client_secret: TWITCH_ACCESS_TOKEN, 
+      code: oauthCode,
+      grant_type: 'authorization_code',
+      redirect_uri: REDIRECT_URI
+    }
+    console.log(`PARAMETERS: ${JSON.stringify(params)}`); 
+    let response = await axios({
+      url: 'https://id.twitch.tv/oauth2/token', 
+      method: 'post', 
+      timeout: 8000, 
+      headers: {
+        'Content-Type': 'application/json'
+      }, 
+      params: params
+    })
+    console.log(`Successful call to get token: ${response.status}`)
+    return response; 
+  } catch (error) {
+    console.log(error)
+    error.json().then((body) => {
+      console.log(body);
+    });
+    return false; 
+  }
 };
 
 const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
+
 app.route('/login').get(async (req, res) => {
   console.log('Incoming login request, redirecting to twitch authorization');
+  // TODO: Here we need to verify whether the user wants to authenticate or not. 
   res.redirect(TWITCH_AUTHORIZE_URL);
 });
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  let oauthCode = req.query.code; 
+  if (oauthCode != undefined) {
+    // We have a valid oauthCode after the user logs in. So fetch the open token. 
+    let response = await generateToken(oauthCode); 
+    console.log(`Access Token: ${response.data.access_token}`)
+    console.log(`Refresh Token: ${response.data.refresh_token}`)
+  }
+  console.log(`Code after redirect url: ${oauthCode}`); 
   res.status(200).send('Channel Points Server Homepage')
 });
 
