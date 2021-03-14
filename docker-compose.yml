@@ -28,23 +28,11 @@ services:
       - MYSQL_ROOT_PASSWORD=root_password
       - MYSQL_DATABASE=channel-point-db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     container_name: channel-point-mysql
-  # PHP MyAdmin for looking at DB
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:4.7
-    depends_on:
-      - mysql
-    networks:
-      - backend
-    ports:
-      - "8081:80"
-    environment:
-      - PMA_HOST=channel-point-mysql
-      - PMA_PORT= 3306
-    volumes:
-      - /sessions
-    container_name: channel-point-phpmyadmin
+    volumes: 
+      - ./mysql:/var/lib/mysql:z
+      
 networks:
   frontend:
   backend:
