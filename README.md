@@ -5,6 +5,11 @@ Twitch Channel Points Hackathon 2021 Project
 
 Here are some commands to run the various components of our application. 
 
+### Install yarn
+```
+yarn install
+```
+
 ### 🌱 Express.js server commands
 
 Start backend express.js server  
@@ -38,13 +43,13 @@ yarn dev
 Start the mysql database and phpmyadmin 
 
 ```
-docker-up 
+yarn docker-up 
 ```
 
 Stop the mysql database and phpmyadmin 
 
 ```
-docker-down 
+yarn docker-down 
 ```
 
 ## Technologies Used 
