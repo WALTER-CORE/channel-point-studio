@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Token temp directory 
+src/routes/temp/

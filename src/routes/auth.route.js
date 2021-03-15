@@ -3,11 +3,9 @@ const config = require('../config/config');
 const logger = require('../logger/logger'); 
 const axios = require('axios');
 const router = express.Router();
+require('dotenv').config();
 
 // Global fields 
-// TODO: Save these tokens somewhere else so the api calls have access to it. 
-let ACCESS_TOKEN = ""; 
-let REFRESH_TOKEN = ""; 
 let clientId = ""; 
 let userId = ""; 
 let headers = {}; 
@@ -23,6 +21,9 @@ const authorize = (async (req, res) => {
 
 const unauthorize = (async (req, res) => {
   try {
+    if (config.env.TWITCH_ACCESS_TOKEN == undefined) {
+      logger.error('Twitch Access Token is undefined')
+    }
     let response = await axios({
       url: 'https://id.twitch.tv/oauth2/revoke', 
       method: 'post', 
@@ -32,7 +33,7 @@ const unauthorize = (async (req, res) => {
       }, 
       params: {
         client_id: config.env.TWITCH_CLIENT_ID,
-        token: ACCESS_TOKEN
+        token: config.env.TWITCH_ACCESS_TOKEN
       }
     })
     logger.info(`👍 Successfully revoked oauth token`)
@@ -45,6 +46,11 @@ const unauthorize = (async (req, res) => {
   }
 });
 
+/**
+ * This redirect route will call the generateAuthToken route with the oauthCode it gets from the request query. 
+ * It also sets the tokens to the global environment variables. 
+ * 
+ */
 const redirect = (async (req, res) => {
   let oauthCode = req.query.code; 
   if (oauthCode != undefined) {
@@ -54,8 +60,9 @@ const redirect = (async (req, res) => {
     if (response != undefined) {
       console.log(`👍 Successfully retrieved auth token`);
       // Set the global variables for the tokens. 
-      ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
-      REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
+      config.env.TWITCH_ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
+      config.env.TWITCH_REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
+      console.log(`Access token after setting process.env.TWITCH_ACCESS_TOKEN`); 
     }
   }
   // This endpoint handles getting the token and then we redirect again to the homepage. 
@@ -106,7 +113,7 @@ const refreshAuthToken = (async (req, res) => {
       }, 
       params: {
         grant_type: 'refresh_token',
-        refresh_token: REFRESH_TOKEN,
+        refresh_token: config.env.TWITCH_REFRESH_TOKEN,
         client_id: config.env.TWITCH_CLIENT_ID,
         client_secret: config.env.TWITCH_CLIENT_SECRET, 
       }
@@ -119,7 +126,7 @@ const refreshAuthToken = (async (req, res) => {
     logger.error(`Error Data: ${JSON.stringify(error.response.data)}`)
     return; 
   }
-});
+}); 
 
 /**
  * Validates the provided token and validates the token has the correct scope(s). additionally, uses the response to pull the correct client_id and broadcaster_id
@@ -149,7 +156,7 @@ const validateToken = async (token) => {
   clientId = response.client_id
   userId = response.user_id
   headers = {
-    "Authorization": `Bearer ${ACCESS_TOKEN}`,
+    "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`,
     "Client-ID": clientId,
     "Content-Type": "application/json"
   }
