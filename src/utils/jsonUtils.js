@@ -1,6 +1,6 @@
 'use strict';
 const fs = require('fs');
-const logger = require('../logger/logger');
+const logger = require('../config/logger');
 
 function writeToJsonFile(directory, fileName, data) {
   try {

@@ -1,7 +1,8 @@
 const express = require('express');
 const config = require('../config/config'); 
-const logger = require('../logger/logger'); 
+const logger = require('../config/logger'); 
 const axios = require('axios');
+const { writeToJsonFile, readFromJsonFile } = require('../utils/jsonUtils'); 
 const router = express.Router();
 require('dotenv').config();
 
@@ -60,9 +61,12 @@ const redirect = (async (req, res) => {
     if (response != undefined) {
       console.log(`👍 Successfully retrieved auth token`);
       // Set the global variables for the tokens. 
-      config.env.TWITCH_ACCESS_TOKEN = response.data.ACCESS_TOKEN; 
-      config.env.TWITCH_REFRESH_TOKEN = response.data.REFRESH_TOKEN; 
-      console.log(`Access token after setting process.env.TWITCH_ACCESS_TOKEN`); 
+      let tokens = { 
+        TWITCH_ACCESS_TOKEN: response.data.access_token,
+        TWITCH_REFRESH_TOKEN: response.data.refresh_token
+      }
+      logger.info(`Writing tokens to temp JSON file`); 
+      writeToJsonFile('src/temp/', 'tokens.json', tokens); 
     }
   }
   // This endpoint handles getting the token and then we redirect again to the homepage. 
