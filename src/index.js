@@ -1,11 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const PORT = process.env.PORT || 8000;
+const app = require('./app');
+const config = require('./config/config'); 
+const logger = require('./config/logger'); 
 
-app.use(cors());
-app.get('/', (req, res) => res.send('Our server'));
+logger.info('Server Process Starting'); 
 
-app.listen(PORT, () => {
-  console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
+// Note that there's not much logic in this file.
+// The server should be mostly "glue" code to set things up and
+// then start listening
+app.listen(config.PORT, function(error) {
+  if (error) {
+    logger.error('Unable to listen for connections', error); 
+    process.exit(10)
+  }
+  logger.info(`⚡️[server]: Server is running at http://localhost:${config.PORT}`); 
 });
