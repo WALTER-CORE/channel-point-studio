@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Twitch Channel Points Hackathon 2021",
   "main": "index.js",
+  "jest": {
+    "verbose": true, 
+    "roots": ["src/test"]
+  },
   "scripts": {
     "client": "yarn --cwd client run start",
     "start": "node src/index",
@@ -10,7 +14,8 @@
     "debug": "DEBUG=express:* nodemon src/index",
     "dev": "concurrently \"yarn run server\" \"yarn run client\"",
     "docker-up": "docker-compose -f docker-compose.yml down",
-    "docker-down": "docker-compose -f docker-compose.yml up"
+    "docker-down": "docker-compose -f docker-compose.yml up",
+    "test": "jest"
   },
   "repository": "git+https://github.com/WALTER-CORE/channel-point-studio.git",
   "author": "Brian Jhong, James Jhong",
