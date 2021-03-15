@@ -5,6 +5,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Global fields 
+// TODO: Save these tokens somewhere else so the api calls have access to it. 
 let ACCESS_TOKEN = ""; 
 let REFRESH_TOKEN = ""; 
 let clientId = ""; 
@@ -18,6 +19,30 @@ const authorize = (async (req, res) => {
   logger.info(`Redirecting to twitch authorize url: ${TWITCH_AUTHORIZE_URL}`)
   // TODO: Here we need to verify whether the user wants to authenticate or not. 
   res.redirect(TWITCH_AUTHORIZE_URL);
+});
+
+const unauthorize = (async (req, res) => {
+  try {
+    let response = await axios({
+      url: 'https://id.twitch.tv/oauth2/revoke', 
+      method: 'post', 
+      timeout: 8000, 
+      headers: {
+        'Content-Type': 'application/json'
+      }, 
+      params: {
+        client_id: config.env.TWITCH_CLIENT_ID,
+        token: ACCESS_TOKEN
+      }
+    })
+    logger.info(`👍 Successfully revoked oauth token`)
+    return response; 
+  } catch (error) {
+    logger.error(`🔥 Error when revoking OAuth Token: ${JSON.stringify(error.response.status)}`)
+    logger.error(`Error Headers: ${JSON.stringify(error.response.headers)}`)
+    logger.error(`Error Data: ${JSON.stringify(error.response.data)}`)
+    return; 
+  }
 });
 
 const redirect = (async (req, res) => {
@@ -57,7 +82,7 @@ const generateAuthToken = async (oauthCode) => {
         client_secret: config.env.TWITCH_CLIENT_SECRET, 
         code: oauthCode,
         grant_type: 'authorization_code',
-        redirect_uri: config.redirect_uri
+        redirect_uri: config.REDIRECT_URI
       }
     })
     logger.info(`👍 Successfully retrieved oauth code`)
@@ -69,6 +94,32 @@ const generateAuthToken = async (oauthCode) => {
     return; 
   }
 };
+
+const refreshAuthToken = (async (req, res) => {
+  try {
+    let response = await axios({
+      url: 'https://id.twitch.tv/oauth2/token--data-urlencode', 
+      method: 'post', 
+      timeout: 8000, 
+      headers: {
+        'Content-Type': 'application/json'
+      }, 
+      params: {
+        grant_type: 'refresh_token',
+        refresh_token: REFRESH_TOKEN,
+        client_id: config.env.TWITCH_CLIENT_ID,
+        client_secret: config.env.TWITCH_CLIENT_SECRET, 
+      }
+    })
+    logger.info(`👍 Successfully revoked oauth token`)
+    return response; 
+  } catch (error) {
+    logger.error(`🔥 Error when revoking OAuth Token: ${JSON.stringify(error.response.status)}`)
+    logger.error(`Error Headers: ${JSON.stringify(error.response.headers)}`)
+    logger.error(`Error Data: ${JSON.stringify(error.response.data)}`)
+    return; 
+  }
+});
 
 /**
  * Validates the provided token and validates the token has the correct scope(s). additionally, uses the response to pull the correct client_id and broadcaster_id
@@ -107,6 +158,7 @@ const validateToken = async (token) => {
 }; 
 
 router.get('/authorize', authorize);
+router.get('/unauthorize', unauthorize); 
 router.get('/redirect', redirect); 
 
 module.exports = router;
