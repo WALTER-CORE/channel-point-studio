@@ -58,16 +58,7 @@ const redirect = (async (req, res) => {
     // We have a valid oauthCode after the user logs in. So fetch the open token. 
     console.log(`OAuth code: ${oauthCode}`)
     let response = await generateAuthToken(oauthCode); 
-    if (response != undefined) {
-      console.log(`👍 Successfully retrieved auth token`);
-      // Set the global variables for the tokens. 
-      let tokens = { 
-        TWITCH_ACCESS_TOKEN: response.data.access_token,
-        TWITCH_REFRESH_TOKEN: response.data.refresh_token
-      }
-      logger.info(`Writing tokens to temp JSON file`); 
-      writeToJsonFile('src/temp/', 'tokens.json', tokens); 
-    }
+    writeTokensToJson(response); 
   }
   // This endpoint handles getting the token and then we redirect again to the homepage. 
   res.redirect('/');
@@ -108,6 +99,7 @@ const generateAuthToken = async (oauthCode) => {
 
 const refreshAuthToken = (async (req, res) => {
   try {
+    let parsedJsonTokens = readFromJsonFile('src/temp/', 'tokens.json');
     let response = await axios({
       url: 'https://id.twitch.tv/oauth2/token--data-urlencode', 
       method: 'post', 
@@ -117,18 +109,19 @@ const refreshAuthToken = (async (req, res) => {
       }, 
       params: {
         grant_type: 'refresh_token',
-        refresh_token: config.env.TWITCH_REFRESH_TOKEN,
+        refresh_token: parsedJsonTokens.TWITCH_REFRESH_TOKEN,
         client_id: config.env.TWITCH_CLIENT_ID,
         client_secret: config.env.TWITCH_CLIENT_SECRET, 
       }
     })
-    logger.info(`👍 Successfully revoked oauth token`)
+    logger.info(`👍 Successfully refreshed oauth token`)
+    writeTokensToJson(response);
     return response; 
   } catch (error) {
     logger.error(`🔥 Error when revoking OAuth Token: ${JSON.stringify(error.response.status)}`)
     logger.error(`Error Headers: ${JSON.stringify(error.response.headers)}`)
     logger.error(`Error Data: ${JSON.stringify(error.response.data)}`)
-    return; 
+    return false; 
   }
 }); 
 
@@ -168,7 +161,19 @@ const validateToken = async (token) => {
   return true
 }; 
 
+const writeTokensToJson = async (response) => {
+  if (response != undefined) {
+    let tokens = { 
+      TWITCH_ACCESS_TOKEN: response.data.access_token,
+      TWITCH_REFRESH_TOKEN: response.data.refresh_token
+    }
+    logger.info(`Writing tokens to temp JSON file`); 
+    writeToJsonFile('src/temp/', 'tokens.json', tokens); 
+  }
+}
+
 router.get('/authorize', authorize);
+router.get('/refresh', refreshAuthToken);
 router.get('/unauthorize', unauthorize); 
 router.get('/redirect', redirect); 
 
