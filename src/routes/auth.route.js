@@ -7,6 +7,7 @@ const router = express.Router();
 require('dotenv').config();
 
 // Global fields 
+let parsedJsonTokens = readFromJsonFile('src/temp/', 'tokens.json');
 let clientId = ""; 
 let userId = ""; 
 let headers = {}; 
@@ -22,7 +23,7 @@ const authorize = (async (req, res) => {
 
 const unauthorize = (async (req, res) => {
   try {
-    if (config.env.TWITCH_ACCESS_TOKEN == undefined) {
+    if (parsedJsonTokens.TWITCH_ACCESS_TOKEN == undefined) {
       logger.error('Twitch Access Token is undefined')
     }
     let response = await axios({
@@ -34,11 +35,13 @@ const unauthorize = (async (req, res) => {
       }, 
       params: {
         client_id: config.env.TWITCH_CLIENT_ID,
-        token: config.env.TWITCH_ACCESS_TOKEN
+        token: parsedJsonTokens.TWITCH_ACCESS_TOKEN
       }
     })
-    logger.info(`👍 Successfully revoked oauth token`)
-    return response; 
+    if (response.status == 200) {
+      logger.info(`👍 Successfully revoked oauth token, redirecting to homepage...`)
+      res.redirect('/'); 
+    }; 
   } catch (error) {
     logger.error(`🔥 Error when revoking OAuth Token: ${JSON.stringify(error.response.status)}`)
     logger.error(`Error Headers: ${JSON.stringify(error.response.headers)}`)
@@ -99,25 +102,27 @@ const generateAuthToken = async (oauthCode) => {
 
 const refreshAuthToken = (async (req, res) => {
   try {
-    let parsedJsonTokens = readFromJsonFile('src/temp/', 'tokens.json');
     let response = await axios({
-      url: 'https://id.twitch.tv/oauth2/token--data-urlencode', 
+      url: 'https://id.twitch.tv/oauth2/token', 
       method: 'post', 
       timeout: 8000, 
       headers: {
-        'Content-Type': 'application/json'
+        'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
       }, 
       params: {
         grant_type: 'refresh_token',
         refresh_token: parsedJsonTokens.TWITCH_REFRESH_TOKEN,
         client_id: config.env.TWITCH_CLIENT_ID,
-        client_secret: config.env.TWITCH_CLIENT_SECRET, 
+        client_secret: config.env.TWITCH_CLIENT_SECRET 
       }
     })
-    logger.info(`👍 Successfully refreshed oauth token`)
-    writeTokensToJson(response);
-    return response; 
+    if (response.status == 200) {
+      logger.info(`👍 Successfully refreshed oauth token, redirecting to homepage`)
+      writeTokensToJson(response);
+      res.redirect('/')
+    }    
   } catch (error) {
+    logger.error(error.response.url)
     logger.error(`🔥 Error when revoking OAuth Token: ${JSON.stringify(error.response.status)}`)
     logger.error(`Error Headers: ${JSON.stringify(error.response.headers)}`)
     logger.error(`Error Data: ${JSON.stringify(error.response.data)}`)
