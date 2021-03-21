@@ -1,6 +1,6 @@
 const express = require('express');
 const config = require('../config/config'); 
-const logger = require('../config/logger'); 
+const logger = require('../config/logger');
 const axios = require('axios');
 const { writeToJsonFile, readFromJsonFile } = require('../utils/jsonUtils'); 
 const router = express.Router();
@@ -8,9 +8,6 @@ require('dotenv').config();
 
 // Global fields 
 let parsedJsonTokens = readFromJsonFile('src/temp/', 'tokens.json');
-let clientId = ""; 
-let userId = ""; 
-let headers = {}; 
 
 const TWITCH_AUTHORIZE_URL = `https://id.twitch.tv/oauth2/authorize?client_id=${config.env.TWITCH_CLIENT_ID}&redirect_uri=${config.REDIRECT_URI}&response_type=code&scope=${config.env.SCOPES}`;
 
@@ -129,42 +126,6 @@ const refreshAuthToken = (async (req, res) => {
     return false; 
   }
 }); 
-
-/**
- * Validates the provided token and validates the token has the correct scope(s). additionally, uses the response to pull the correct client_id and broadcaster_id
- * 
- * @return {object} response code
- */
-const validateToken = async (token) => {
-  let response; 
-  try {
-    response = await axios.get(`https://id.twitch.tv/oauth2/validate`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    })
-  } catch (error) {
-    logger.error(`🔥 ${error.response.data}`)
-    logger.error('Invalid token. Please login again and authorize channel point studio.'); 
-    return false; 
-  }
-
-  if (response.scopes.indexOf("channel:manage:redemptions") == -1 ||response.scopes.indexOf("user:edit:follows") == -1) {
-    logger.error('Invalid scopes. Please login again to generate a new authorization token'); 
-    return false;
-  }
-
-  // update the global variables to returned values
-  clientId = response.client_id
-  userId = response.user_id
-  headers = {
-    "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`,
-    "Client-ID": clientId,
-    "Content-Type": "application/json"
-  }
-
-  return true
-}; 
 
 const writeTokensToJson = async (response) => {
   if (response != undefined) {
