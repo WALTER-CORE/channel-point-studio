@@ -1,6 +1,7 @@
 const express = require('express');
 const authRoute = require('./auth.route');
 const twitchRoute = require('./twitch.route');
+const rewardRoute = require('./rewards.route');
 const router = express.Router();
 
 const defaultRoutes = [
@@ -11,6 +12,10 @@ const defaultRoutes = [
   {
     path: '/twitch',
     route: twitchRoute,
+  },
+  {
+    path: '/rewards',
+    route: rewardRoute,
   }
 ];
 
