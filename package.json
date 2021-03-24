@@ -4,8 +4,10 @@
   "description": "Twitch Channel Points Hackathon 2021",
   "main": "index.js",
   "jest": {
-    "verbose": true, 
-    "roots": ["src/test"]
+    "verbose": true,
+    "roots": [
+      "src/test"
+    ]
   },
   "scripts": {
     "client": "yarn --cwd client run start",
@@ -13,7 +15,7 @@
     "server": "nodemon src/index",
     "debug": "DEBUG=express:* nodemon src/index",
     "dev": "concurrently \"yarn run server\" \"yarn run client\"",
-    "docker-up": "docker-compose -f docker-compose.yml up -d", 
+    "docker-up": "docker-compose -f docker-compose.yml up -d",
     "docker-down": "docker-compose -f docker-compose.yml down"
   },
   "repository": "git+https://github.com/WALTER-CORE/channel-point-studio.git",
